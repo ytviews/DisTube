@@ -219,7 +219,7 @@ export class DisTube extends TypedEmitter<TypedDisTubeEvents> {
     }
 
     const queue = this.getQueue(voiceChannel) || (await this.queues.create(voiceChannel, textChannel));
-    await queue._taskQueue.queuing();
+    await queue._taskQueue.queuing(true);
     try {
       this.debug(`[${queue.id}] Playing input: ${song}`);
       const resolved = await this.handler.resolve(song, { member, metadata });
@@ -256,6 +256,7 @@ export class DisTube extends TypedEmitter<TypedDisTubeEvents> {
       }
       throw e;
     } finally {
+      if (!queue.songs.length && !queue._taskQueue.hasPlayTask) queue.remove();
       queue._taskQueue.resolve();
     }
   }
@@ -320,7 +321,7 @@ export class DisTube extends TypedEmitter<TypedDisTubeEvents> {
    * @param guild - The type can be resolved to give a {@link Queue}
    * @returns The guild queue
    */
-  pause(guild: GuildIdResolvable): Queue {
+  pause(guild: GuildIdResolvable): Promise<Queue> {
     return this.#getQueue(guild).pause();
   }
 
@@ -329,7 +330,7 @@ export class DisTube extends TypedEmitter<TypedDisTubeEvents> {
    * @param guild - The type can be resolved to give a {@link Queue}
    * @returns The guild queue
    */
-  resume(guild: GuildIdResolvable): Queue {
+  resume(guild: GuildIdResolvable): Promise<Queue> {
     return this.#getQueue(guild).resume();
   }
 
